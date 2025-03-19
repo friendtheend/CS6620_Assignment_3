@@ -30,7 +30,7 @@ export class LambdaStack extends Stack {
             retention: logs.RetentionDays.ONE_WEEK,
         });
 
-        const REQUESTS_LAYER_ARN = 'arn:aws:lambda:us-east-2:770693421928:layer:Klayers-p311-requests:13';
+        const REQUESTS_LAYER_ARN = 'arn:aws:lambda:us-east-1:770693421928:layer:Klayers-p311-requests:15';
 
         // Size Tracking Lambda
         this.sizeTrackingLambda = new lambda.Function(this, 'SizeTrackingLambda', {

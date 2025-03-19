@@ -8,8 +8,8 @@ from botocore.exceptions import ClientError
 from decimal import Decimal
 
 # Initialize DynamoDB and S3 clients
-dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
-s3_client = boto3.client('s3', region_name='us-east-2')
+dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+s3_client = boto3.client('s3', region_name='us-east-1')
 
 # Environment variables for Lambda
 BUCKET_NAME = os.environ['BUCKET_NAME']
@@ -18,8 +18,11 @@ DYNAMODB_TABLE_NAME = os.environ['DYNAMODB_TABLE_NAME']
 def lambda_handler(event, context):
     try:
         # Get the current timestamp and calculate  seconds earlier
-        current_timestamp = int(datetime.now().timestamp())
-        start_timestamp = current_timestamp - 300
+        current_timestamp = int(datetime.now().timestamp() * 1000)
+        start_timestamp = current_timestamp - (10 * 1000)  # 10 秒前
+
+        print(f"Current timestamp (ms): {current_timestamp}")
+        print(f"Start timestamp (ms): {start_timestamp}")
 
         # Query DynamoDB for entries in the last 10 seconds
         table = dynamodb.Table(DYNAMODB_TABLE_NAME)
@@ -29,6 +32,9 @@ def lambda_handler(event, context):
         )
 
         items = response.get('Items', [])
+        print(f"Queried {len(items)} items from DynamoDB.")
+        print(f"Items: {items}")
+
         if not items:
             return {
                 'statusCode': 404,
@@ -40,8 +46,10 @@ def lambda_handler(event, context):
         sizes = [float(item['size']) for item in items]
 
         # Calculate relative times (e.g., 0, -1, -2, etc.)
-        relative_times = [-(current_timestamp - ts) for ts in timestamps]
-        print("relative_times:   ", relative_times)
+        relative_times = [-(current_timestamp - ts) / 1000 for ts in timestamps]
+        print("Timestamps:", timestamps)
+        print("Relative times:", relative_times)
+        print("Sizes:", sizes)
 
         # Query for the maximum historical size
         response_max = table.query(
@@ -57,9 +65,10 @@ def lambda_handler(event, context):
         plt.figure(figsize=(10, 6))
         plt.plot(relative_times, sizes, label='Bucket Size (Last 10 seconds)', color='b')
         plt.axhline(y=max_size, color='r', linestyle='--', label='Historical High')
+        plt.xlim(-10, 0)
         plt.xlabel('Relative Time (seconds)')
         plt.ylabel('Size (Bytes)')
-        plt.title('S3 Bucket Size Change in Last 300 Seconds')
+        plt.title('S3 Bucket Size Change in Last 10 Seconds')
         plt.xticks(rotation=45)
         plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
         plt.tight_layout()

@@ -10,32 +10,48 @@ PLOTTING_API_URL = os.environ['PLOTTING_API_URL']
 
 def lambda_handler(event, context):
     try:
-        # Create assignment1.txt
+        # Step 1: Create object 'assignment1.txt' with initial content
         s3_client.put_object(
             Bucket=BUCKET_NAME,
             Key='assignment1.txt',
-            Body='Empty Assignment 1.'
+            Body='Empty Assignment 1'
         )
-        print("Created assignment1.txt")
-        time.sleep(60)
+        print("Created 'assignment1.txt' with content: 'Empty Assignment 1'")
 
-        # Create assignment2.txt
+        # Wait
+        time.sleep(1.5)
+
+        # Step 2: Update 'assignment1.txt' with new content
+        s3_client.put_object(
+            Bucket=BUCKET_NAME,
+            Key='assignment1.txt',
+            Body='Empty Assignment 2222222222'
+        )
+        print("Updated 'assignment1.txt' with content: 'Empty Assignment 2222222222'")
+
+        # Wait
+        time.sleep(1.5)
+
+        # Step 3: Delete 'assignment1.txt'
+        s3_client.delete_object(
+            Bucket=BUCKET_NAME,
+            Key='assignment1.txt'
+        )
+        print("Deleted 'assignment1.txt'")
+
+        # Wait
+        time.sleep(1.5)
+
+        # Step 4: Create object 'assignment2.txt' with content "33"
         s3_client.put_object(
             Bucket=BUCKET_NAME,
             Key='assignment2.txt',
-            Body='Empty Assignment 2222222222'
-        )
-        print("Created assignment2.txt")
-        time.sleep(60)  # Wait for alarm and cleanup
-
-        # Create assignment3.txt
-        s3_client.put_object(
-            Bucket=BUCKET_NAME,
-            Key='assignment3.txt',
             Body='33'
         )
-        print("Created assignment3.txt")
-        time.sleep(120)  # Wait for alarm and cleanup
+        print("Created 'assignment2.txt' with content: '33'")
+
+        # Wait
+        time.sleep(1.5)
 
         # Call plotting API
         response = requests.get(PLOTTING_API_URL)

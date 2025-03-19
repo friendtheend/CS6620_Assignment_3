@@ -17,14 +17,15 @@ export class PlottingStack extends Stack {
     constructor(scope: Construct, id: string, props: PlottingStackProps) {
         super(scope, id, props);
 
-        const MATPLOTLIB_LAYER_ARN = 'arn:aws:lambda:us-east-2:770693421928:layer:Klayers-p311-matplotlib:12';
+        const MATPLOTLIB_LAYER_ARN = 'arn:aws:lambda:us-east-1:770693421928:layer:Klayers-p311-matplotlib:16';
+        const NUMPY_LAYER_ARN = 'arn:aws:lambda:us-east-1:770693421928:layer:Klayers-p311-numpy:14'
 
         // Plotting Lambda
         this.plottingLambda = new lambda.Function(this, 'PlottingLambda', {
             runtime: lambda.Runtime.PYTHON_3_11,
             handler: 'plotting.lambda_handler',
             code: lambda.Code.fromAsset('lambda_functions/plotting'),
-            timeout: cdk.Duration.seconds(30),
+            timeout: cdk.Duration.seconds(50),
             memorySize: 512,
             environment: {
                 BUCKET_NAME: props.bucket.bucketName,
@@ -33,7 +34,7 @@ export class PlottingStack extends Stack {
         });
 
         this.plottingLambda.addToRolePolicy(new iam.PolicyStatement({
-            actions: ["dynamodb:Query"],
+            actions: ["dynamodb:Query","dynamodb:Scan"],
             resources: [
                 props.table.tableArn,
                 `${props.table.tableArn}/index/BucketSizeIndex`
@@ -49,7 +50,15 @@ export class PlottingStack extends Stack {
             lambda.LayerVersion.fromLayerVersionArn(
                 this, 
                 'MatplotlibLayer', 
-                MATPLOTLIB_LAYER_ARN
+                MATPLOTLIB_LAYER_ARN,
+            )
+        );
+
+        this.plottingLambda.addLayers(
+            lambda.LayerVersion.fromLayerVersionArn(
+                this,
+                'NumpyLayer',
+                NUMPY_LAYER_ARN,
             )
         );
     }

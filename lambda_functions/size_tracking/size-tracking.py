@@ -5,7 +5,7 @@ from datetime import datetime
 from botocore.exceptions import ClientError
 
 s3_client = boto3.client('s3')
-dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
+dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
 
 # DynamoDB Table name
 DYNAMODB_TABLE_NAME = os.environ['DYNAMODB_TABLE_NAME']
@@ -19,7 +19,7 @@ def lambda_handler(event, context):
             # Parse the SNS message from the SQS event
             message = json.loads(record['body'])
             s3_event = json.loads(message['Message'])
-            
+
             # Calculate the total size of all objects in the bucket
             total_size = 0
             total_objects = 0
@@ -31,7 +31,7 @@ def lambda_handler(event, context):
                     total_objects += 1
 
             # Get the current timestamp
-            timestamp = int(datetime.now().timestamp())
+            timestamp = int(datetime.now().timestamp()*1000)
 
             # Get the DynamoDB table
             table = dynamodb.Table(DYNAMODB_TABLE_NAME)
